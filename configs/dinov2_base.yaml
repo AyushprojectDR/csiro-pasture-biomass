@@ -1,0 +1,68 @@
+# Model Configuration - Actual Competition Settings
+
+data:
+  train_csv: 'data/train.csv'
+  test_csv: 'data/test.csv'
+  train_image_dir: 'data/train_images'
+  test_image_dir: 'data/test_images'
+  image_size: 512  # Resize crops to 512×512
+
+model:
+  model_name: 'vit_huge_plus_patch16_dinov3.lvd1689m'  # DINOv3 Huge Plus
+  pretrained: true
+  grad_checkpointing: true  # Enable for memory efficiency
+
+training:
+  # Data
+  batch_size: 4
+  accumulation_steps: 4  # Effective batch size = 4 × 4 = 16
+  num_workers: 4
+  
+  # Training schedule
+  n_folds: 4
+  epochs: 50
+  freeze_epochs: 5  # Freeze backbone for first 5 epochs
+  warmup_epochs: 3
+  early_stopping_patience: 10
+  
+  # Optimization
+  lr_backbone: 5.0e-5  # Lower LR for pretrained backbone
+  lr_head: 2.0e-4      # Higher LR for randomly initialized head
+  weight_decay: 5.0e-4
+  grad_clip: 0.5
+  
+  # Regularization
+  use_amp: true  # Mixed precision training
+  use_log_transform: false  # Train on original scale
+  
+# Training order (sequential)
+targets:
+  - dead    # Train first
+  - clover  # Train second  
+  - green   # Train last
+
+# Target column mapping
+target_cols:
+  dead: 'Dry_Dead_g'
+  clover: 'Dry_Clover_g'
+  green: 'Dry_Green_g'
+
+# Competition metric weights
+target_weights:
+  Dry_Green_g: 0.1
+  Dry_Dead_g: 0.1
+  Dry_Clover_g: 0.1
+  GDM_g: 0.2
+  Dry_Total_g: 0.5
+
+# Augmentation settings
+augmentation:
+  horizontal_flip: 0.5
+  vertical_flip: 0.5
+  random_rotate_90: 0.5
+  rotate_limit: 10  # ±10 degrees
+  color_jitter: false  # Disabled for better performance
+
+# Other
+seed: 42
+debug: false
